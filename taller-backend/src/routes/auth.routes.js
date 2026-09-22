@@ -1,12 +1,31 @@
-import {Router} from 'express';
-import {AuthController} from '../controllers/auth.controller.js';
+import { Router } from 'express';
+import { AuthController } from '../controllers/auth.controller.js';
+import { authenticateToken } from '../middlewares/auth.middleware.js';
 
-const router = Router();
+export class AuthRoutes {
+  static get routes() {
+    const router = Router();
 
-// Ruta para el login de usuarios POST /api/auth/login
-router.post('/login', AuthController.login);
+    // ----------------------------------------------------
+    // Rutas Públicas (No requieren token)
+    // ----------------------------------------------------
 
-// Ruta para refrescar el token POST /api/auth/refresh-token
-router.post('/refresh-token', AuthController.refreshToken);
+    // POST /api/v1/auth/login -> Iniciar sesión
+    router.post('/login', AuthController.login);
 
-export default router;
+    // POST /api/v1/auth/refresh-token -> Generar nuevo accessToken
+    router.post('/refresh-token', AuthController.refreshToken);
+
+    // ----------------------------------------------------
+    // Rutas Protegidas (Requieren Access Token válido)
+    // ----------------------------------------------------
+
+    // POST /api/v1/auth/logout -> Cerrar sesión y limpiar cookie
+    router.post('/logout', authenticateToken, AuthController.logout);
+
+    // GET /api/v1/auth/me -> Obtener datos del perfil autenticado
+    router.get('/me', authenticateToken, AuthController.getProfile);
+
+    return router;
+  }
+}
