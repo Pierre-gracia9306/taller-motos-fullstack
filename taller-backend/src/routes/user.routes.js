@@ -10,12 +10,9 @@ export class UserRoutes {
     // 1. AUTENTICACIÓN GLOBAL: Requiere token JWT válido para todas las rutas de usuarios
     router.use(authenticateToken);
 
-    // ==========================================================
-    // RUTA CON VALIDACIÓN DE PERTENENCIA (OWNERSHIP)
-    // ==========================================================
     // Permite cambiar la contraseña solo si es el propio usuario o si es ADMIN
     router.patch(
-      '/:id/password',
+      '/:id/change-password',
       (req, _res, next) => {
         const isOwner = String(req.user.id) === String(req.params.id);
         const isAdmin = req.user.role === 'ADMIN';
@@ -28,19 +25,16 @@ export class UserRoutes {
       UserController.changePassword
     );
 
-    // ==========================================================
-    // RUTAS EXCLUSIVAS DE ADMINISTRADOR (ADMIN)
-    // ==========================================================
     // A partir de aquí, todas las rutas subsecuentes requieren el rol ADMIN
     router.use(authorizeRoles('ADMIN'));
 
     // CRUD completo de usuarios
     router.route('/')
-      .get(UserController.getUsers)
-      .post(UserController.createUser);
+      .get(UserController.getAllUsers)
+      .post(UserController.registerUser);
 
     router.route('/:id')
-      .get(UserController.getUserById)
+      .get(UserController.getUserByIdWithoutPassword)
       .put(UserController.updateUser);
 
     router.patch('/:id/status', UserController.toggleUserStatus);

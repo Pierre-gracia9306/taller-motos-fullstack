@@ -44,6 +44,7 @@ export class UserService {
             throw new NotFoundError("Usuario no encontrado.");
         }
 
+        //4.1 Validar si el email ya existe en otro usuario
         if (email && email !== user.email) {
             const existingUser = await UserModel.findByEmail(email);
             if (existingUser) {

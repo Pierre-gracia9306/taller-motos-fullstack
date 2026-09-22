@@ -1,22 +1,23 @@
 import ms from 'ms';
-import { env } from '../config/env.config.js';
+import { env } from '../config/env.js';
 import { AuthService } from '../services/auth.service.js';
 import { BadRequestError } from '../utils/errors.js';
 
 export class AuthController {
+    //1. metodo para iniciar sesión
     static async login(req, res, next) {
         try {
             const { email, password } = req.body;
 
-            // 1. Validar que se proporcionen email y contraseña
+            // 1.1 Validar que se proporcionen email y contraseña
             if (!email || !password) {
                 throw new BadRequestError('Email y contraseña son obligatorios');
             }
 
-            // 2. Llamar al método loginUser del AuthService para autenticar al usuario
+            // 1.2 Llamar al método loginUser del AuthService para autenticar al usuario
             const { accessToken, refreshToken, user } = await AuthService.loginUser(email, password);
 
-            // 3. Crear cookie para el refresh token con las opciones de seguridad
+            // 1.3 Crear cookie para el refresh token con las opciones de seguridad
             res.cookie('refreshToken', refreshToken, {
                 httpOnly: true,
                 secure: env.nodeEnv === 'production',
@@ -24,7 +25,7 @@ export class AuthController {
                 maxAge: ms(env.jwt.refreshExpiresIn)
             });
 
-            // 4. Enviar la respuesta con el access token y los datos del usuario
+            // 1.4 Enviar la respuesta con el access token y los datos del usuario
             return res.status(200).json({
                 status: 'success',
                 message: 'Usuario autenticado correctamente',
@@ -38,12 +39,13 @@ export class AuthController {
         }
     }
 
+    // 2. Método para renovar el token de acceso usando el refresh token
     static async refreshToken(req, res, next) {
         try {
-            // 1. Obtener el refresh token de la cookie
+            // 2.1 Obtener el refresh token de la cookie
             const refreshToken = req.cookies?.refreshToken;
             
-            // 2. Renovar el token de acceso
+            // 2.2 Renovar el token de acceso
             const { accessToken } = await AuthService.refreshToken(refreshToken);
 
             return res.status(200).json({
@@ -58,9 +60,10 @@ export class AuthController {
         }
     }
 
-    static async logout(req, res, next) {
+    // 3. Método para cerrar sesión y limpiar la cookie del refresh token
+    static async logout(_req, res, next) {
         try {
-            // 1. Opcional: Ejecutar lógica en servicio (por si agregas blacklist a futuro)
+            // 1. Opcional: Ejecutar lógica en servicio (por si agrego blacklist a futuro)
             await AuthService.logoutUser();
 
             // 2. Limpiar la cookie HTTP-Only usando las mismas opciones de configuración
@@ -79,6 +82,7 @@ export class AuthController {
         }
     }
 
+    // 4. Método para obtener el perfil del usuario autenticado
     static async getProfile(req, res, next) {
         try {
             // req.user.id es inyectado previamente por el auth.middleware

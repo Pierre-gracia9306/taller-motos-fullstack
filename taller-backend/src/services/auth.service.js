@@ -8,38 +8,38 @@ export class AuthService {
     
     // 1. Iniciar sesión y generar tokens
     static async loginUser(email, password) {
-        // 1. Buscar usuario por email en la base de datos
+        // 1.1 Buscar usuario por email en la base de datos
         const user = await UserModel.findByEmail(email);
         if (!user) {
             throw new UnauthorizedError('Credenciales inválidas');
         }
 
-        // 2. Validar si el usuario está activo (Regla de Negocio)
+        // 1.2 Validar si el usuario está activo (Regla de Negocio)
         if (!user.active) {
             throw new ForbiddenError('Credenciales inválidas');
         }
 
-        // 3. Comparar la contraseña enviada con el hash guardado
+        // 1.3 Comparar la contraseña enviada con el hash guardado
         const isMatch = await bcrypt.compare(password, user.password_hash);
         if (!isMatch) {
             throw new UnauthorizedError('Credenciales inválidas');
         }   
 
-        // 4A. Generar access token JWT con id y role del usuario
+        // 1.4.1 Generar access token JWT con id y role del usuario
         const accessToken = jwt.sign(
             { id: user.id, role: user.role },
             env.jwt.secret,
             { expiresIn: env.jwt.expiresIn }
         );
 
-        // 4B. Generar refresh token JWT con id y role del usuario
+        // 1.4.2 Generar refresh token JWT con id y role del usuario
         const refreshToken = jwt.sign(
             { id: user.id, role: user.role },
             env.jwt.refreshSecret,
             { expiresIn: env.jwt.refreshExpiresIn }
         );
 
-        // 5. Retornar objeto sin password_hash
+        // 1.5. Retornar objeto sin password_hash
         const { password_hash, ...userWithoutPassword } = user;
 
         return {
@@ -56,21 +56,21 @@ export class AuthService {
         }
 
         try {
-            // 1. Verificar y decodificar el refresh token usando la clave secreta
+            // 2.1 Verificar y decodificar el refresh token usando la clave secreta
             const decoded = jwt.verify(token, env.jwt.refreshSecret);
 
-            // 2. Buscar el usuario en la base de datos
+            // 2.2 Buscar el usuario en la base de datos
             const user = await UserModel.findById(decoded.id);
             if (!user) {
                 throw new UnauthorizedError('Usuario no encontrado');
             }
 
-            // 3. Verificar si el usuario está activo
+            // 2.3 Verificar si el usuario está activo
             if (!user.active) {
                 throw new ForbiddenError('Usuario inactivo');
             }
 
-            // 4. Generar un nuevo access token
+            // 2.4 Generar un nuevo access token
             const newAccessToken = jwt.sign(
                 { id: user.id, role: user.role },
                 env.jwt.secret,

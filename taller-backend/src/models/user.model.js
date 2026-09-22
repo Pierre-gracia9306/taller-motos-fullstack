@@ -1,7 +1,7 @@
 import { pool } from "../config/db.js";
 
 export class UserModel {
-    //Buscar usuario por el email para el login 
+    //1. Buscar usuario por el email para el login 
     static async findByEmail(email){
         const query = `
         SELECT id, name, email, password_hash, role, active, created_at 
@@ -12,7 +12,7 @@ export class UserModel {
         return rows[0] || null
     }
 
-    //Buscar usaurio por el ID, para validar el token en peticiones autenticadas
+    //2. Buscar usuario por el ID, para validar el token en peticiones autenticadas
     static async findById(id){
         const query = `
         SELECT id, name, email, password_hash, role, active, created_at
@@ -22,7 +22,7 @@ export class UserModel {
         const [rows]= await pool.execute(query,[id]);
         return rows[0] || null
     }
-    //Buscar usuarios por el id sin el password_hash, para mostrar en el panel de administracion
+    //3. Buscar usuarios por el id sin el password_hash, para mostrar en el panel de administracion
     static async findByIdWithoutPassword(id){
         const query = `
         SELECT id, name, email, role, active, created_at
@@ -33,7 +33,7 @@ export class UserModel {
         return rows[0] || null;
     }
 
-    //Buscar todos los usuarios, para mostrar en el panel de administracion
+    //4. Buscar todos los usuarios, para mostrar en el panel de administracion
     static async findAll(){
         const query = `
         SELECT id, name, email, role, active, created_at
@@ -43,7 +43,7 @@ export class UserModel {
         return rows;
     }
 
-    //Crear un nuevo usuario, para registrar administradores y/o usuarios
+    //5. Crear un nuevo usuario, para registrar administradores y/o usuarios
     static async create({name, email, password_hash, role='MECANICO'}){
         const query = `
         INSERT INTO users (name, email, password_hash, role)
@@ -58,7 +58,7 @@ export class UserModel {
         };
     }
 
-    //Actualizar un usuario, para actualizar datos de administradores y/o usuarios
+    //6. Actualizar un usuario, para actualizar datos de administradores y/o usuarios
     static async update(id, {name, email, password_hash, role, active}){
         const query = `
         UPDATE users
@@ -69,7 +69,7 @@ export class UserModel {
         return result.affectedRows > 0;
     }
 
-    //Eliminacion logica de un usuario, para desactivar administradores y/o usuarios
+    //7. Eliminacion logica de un usuario, para desactivar administradores y/o usuarios
     static async toggleActive(id, active){
         const query = `
         UPDATE users
@@ -80,7 +80,7 @@ export class UserModel {
         return result.affectedRows > 0;
     }
 
-    // Cambiar la contraseña de un usuario, para actualizar la contraseña de administradores y/o usuarios
+    // 8. Cambiar la contraseña de un usuario, para actualizar la contraseña de administradores y/o usuarios
     static async updatePassword(id, password_hash) {
         const query = `
         UPDATE users
