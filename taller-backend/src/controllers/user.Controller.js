@@ -1,6 +1,7 @@
 import { UserService } from "../services/user.service.js";
 import { BadRequestError } from "../utils/errors.js";
 
+
 export class UserController {
     // 1. Registrar un nuevo usuario
     static async registerUser(req, res, next) {
@@ -10,11 +11,7 @@ export class UserController {
                 throw new BadRequestError("Faltan campos obligatorios.");
             }
             const newUser = await UserService.registerUser({ name, email, password, role });
-            res.status(201).json({
-                status: "success",
-                message: "Usuario registrado exitosamente.",
-                data: newUser
-            });
+            return res.created(newUser,"Usuario registrado exitosamente.");
         } catch (error) {
             next(error);
         }
@@ -24,10 +21,7 @@ export class UserController {
     static async getAllUsers(_req, res, next) {
         try {
             const users = await UserService.getAllUsers();
-            res.status(200).json({
-                status: "success",
-                data: users
-            });
+            return res.success(users, "Usuarios obtenidos exitosamente.");
         } catch (error) {
             next(error);
         }
@@ -38,10 +32,7 @@ export class UserController {
         try {
             const { id } = req.params;
             const user = await UserService.getUserByIdWithoutPassword(id);
-            res.status(200).json({
-                status: "success",
-                data: user
-            });
+            return res.success(user, "Usuario obtenido exitosamente.");
         }
         catch (error) {
             next(error);
@@ -54,11 +45,7 @@ export class UserController {
             const { id } = req.params;
             const { name, email, role } = req.body;
             const updatedUser = await UserService.updateUser(id, { name, email, role });
-            res.status(200).json({
-                status: "success",
-                message: "Usuario actualizado exitosamente.",
-                data: updatedUser
-            });
+            return res.success(updatedUser, "Usuario actualizado exitosamente.");
         }
         catch (error) {
             next(error);
@@ -74,10 +61,7 @@ export class UserController {
                 throw new BadRequestError('La nueva contraseña es obligatoria');
             }
             const result = await UserService.changePassword(id, { currentPassword, newPassword });
-            res.status(200).json({
-                status: "success",
-                message: result.message
-            });
+            return res.success(null, result.message);
         }
         catch (error) {
             next(error);
@@ -91,10 +75,7 @@ export class UserController {
 
             const result = await UserService.toggleUserStatus(id);
 
-            res.status(200).json({
-                status: "success",
-                message: result.message
-            });
+           return res.success(null, result.message);
         }
         catch (error) {
             next(error);

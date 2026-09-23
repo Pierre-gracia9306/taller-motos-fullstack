@@ -3,10 +3,12 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { env } from './config/env.js';
 import { errorHandler } from './middlewares/error.middleware.js';
+import { responseHandler } from './middlewares/response.middleware.js';
 import { NotFoundError } from './utils/errors.js';
 
 import { AuthRoutes } from './routes/auth.routes.js';
 import { UserRoutes } from './routes/user.routes.js';
+import { ClientRoutes } from './routes/client.routes.js';
 
 const app = express();
 
@@ -18,13 +20,15 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
+// Middleware para estandarizar las respuestas
+app.use(responseHandler);
+
 // 2. Ruta de verificación de estados (Health Check)
 app.get('/health', (_req, res) => {
-    res.status(200).json({
-        status: 'OK',
-        message: 'API del Taller de Motocicletas funcionando correctamente',
-        timestamp: new Date().toISOString()
-    });
+    return res.success(
+        { timestamp: new Date().toISOString() }, 
+        'API del Taller de Motocicletas funcionando correctamente'
+    );
 });
 
 // 3. Rutas de la API 
@@ -32,6 +36,7 @@ const apiRouter = express.Router();
 
 apiRouter.use('/auth', AuthRoutes.routes);
 apiRouter.use('/users', UserRoutes.routes);
+apiRouter.use('/clients', ClientRoutes.routes);
 
 app.use('/api/v1', apiRouter);
 
