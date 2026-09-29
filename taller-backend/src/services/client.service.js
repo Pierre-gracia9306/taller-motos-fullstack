@@ -69,9 +69,4 @@ export class ClientService {
         return await this.getClientById(id); 
     }   
 
-    // 7. Eliminar un cliente existente
-    static async deleteClient(id) {
-        await this.getClientById(id);
-        return await ClientModel.delete(id);
-    }
 }

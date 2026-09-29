@@ -1,4 +1,4 @@
-import pool from '../database/db.js';
+import {pool} from "../config/db.js";
 
 export class ClientModel {
     //1. Metodo para buscar un cliente por id.
@@ -71,12 +71,4 @@ export class ClientModel {
         return result.affectedRows > 0;
     }
 
-    //8. Metodo para eliminar un cliente.
-    static async delete(id) {
-        const [result] = await pool.execute(
-            'DELETE FROM clients WHERE id = ?',
-            [id]
-        );
-        return result.affectedRows > 0;
-    }
 }

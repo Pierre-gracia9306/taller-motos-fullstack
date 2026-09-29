@@ -81,14 +81,4 @@ export class ClientController {
         }
     }
 
-    // 7. Eliminar un cliente
-    static async deleteClient(req, res, next) {
-        try {
-            const { id } = req.params;
-            await ClientService.deleteClient(id);
-            return res.success(null, "Cliente eliminado exitosamente.");
-        } catch (error) {
-            next(error);
-        }
-    } 
 }

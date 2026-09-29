@@ -25,7 +25,6 @@ export class ClientRoutes {
       .get(ClientController.getClientById)
       .put(ClientController.updateClient)
       .patch(ClientController.partialUpdateClient)
-      .delete(ClientController.deleteClient);
 
     return router;
   }

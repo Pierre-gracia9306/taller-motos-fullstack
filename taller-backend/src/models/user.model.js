@@ -59,13 +59,13 @@ export class UserModel {
     }
 
     //6. Actualizar un usuario, para actualizar datos de administradores y/o usuarios
-    static async update(id, {name, email, password_hash, role, active}){
+    static async update(id, {name, email, role}){
         const query = `
         UPDATE users
-        SET name= ?, email= ?, password_hash= ?, role= ?, active= ?
+        SET name= ?, email= ?, role= ?
         WHERE id= ?
         `;
-        const [result] = await pool.execute(query,[name, email, password_hash, role, active, id]);  
+        const [result] = await pool.execute(query,[name, email, role, id]);  
         return result.affectedRows > 0;
     }
 

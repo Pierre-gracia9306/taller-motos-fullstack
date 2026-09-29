@@ -9,6 +9,7 @@ import { NotFoundError } from './utils/errors.js';
 import { AuthRoutes } from './routes/auth.routes.js';
 import { UserRoutes } from './routes/user.routes.js';
 import { ClientRoutes } from './routes/client.routes.js';
+import { BikeRoutes } from './routes/bike.routes.js';
 
 const app = express();
 
@@ -37,6 +38,8 @@ const apiRouter = express.Router();
 apiRouter.use('/auth', AuthRoutes.routes);
 apiRouter.use('/users', UserRoutes.routes);
 apiRouter.use('/clients', ClientRoutes.routes);
+apiRouter.use('/bikes', BikeRoutes.routes);
+
 
 app.use('/api/v1', apiRouter);
 
