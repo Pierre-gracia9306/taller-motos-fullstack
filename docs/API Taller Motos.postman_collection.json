@@ -1,0 +1,875 @@
+{
+  "info": {
+    "_postman_id": "561056b0-20c6-41f9-a7d5-3c94c6d1fc17",
+    "name": "API Taller Motos",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "58589619",
+    "_collection_link": "https://go.postman.co/collection/58589619-561056b0-20c6-41f9-a7d5-3c94c6d1fc17?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "01. Autenticación",
+      "item": [
+        {
+          "name": "POST Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// 1. Validar que la respuesta sea HTTP 200\r\npm.test(\"Status code es 200 OK\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\n// 2. Extraer el accessToken y guardarlo automáticamente en la variable de entorno\r\nvar responseData = pm.response.json();\r\nif (responseData.data && responseData.data.accessToken) {\r\n    pm.environment.set(\"accessToken\", responseData.data.accessToken);\r\n    console.log(\"Token capturado exitosamente!\");\r\n}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"email\": \"admin@taller.com\",\r\n  \"password\": \"Admin123*\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET Consultar Perfil /me",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Perfil obtenido correctamente\", function () {\r\n    pm.response.to.have.status(200);\r\n    pm.expect(pm.response.json().status).to.eql(\"success\");\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST Renovación de Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Token renovado con éxito\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\n// Actualizar el accessToken en la variable de entorno con el nuevo token\r\nvar responseData = pm.response.json();\r\nif (responseData.data && responseData.data.accessToken) {\r\n    pm.environment.set(\"accessToken\", responseData.data.accessToken);\r\n}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh-token",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "refresh-token"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST Cerrar Sesión",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Sesión cerrada correctamente\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\n// Limpiar la variable de entorno tras el logout\r\npm.environment.unset(\"accessToken\");"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "02. Usuarios",
+      "item": [
+        {
+          "name": "GET Obtener Usuarios",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code es 200 OK\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Devuelve lista de usuarios\", function () {\r\n    var responseData = pm.response.json();\r\n    pm.expect(responseData.status).to.eql(\"success\");\r\n    pm.expect(responseData.data).to.be.an(\"array\");\r\n\r\n    // Si hay usuarios en el sistema, guardamos el ID del primero para las pruebas de ID\r\n    if (responseData.data.length > 0) {\r\n        pm.environment.set(\"testUserId\", responseData.data[0].id);\r\n    }\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST Registrar Usuario",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Usuario creado exitosamente (201 Created)\", function () {\r\n    pm.response.to.have.status(201);\r\n});\r\n\r\nvar responseData = pm.response.json();\r\nif (responseData.data && responseData.data.id) {\r\n    // Guardamos el ID del usuario recién creado para probar GET/PUT/PATCH con él\r\n    pm.environment.set(\"createdUserId\", responseData.data.id);\r\n}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"Mecanico Pedro\",\r\n  \"email\": \"pedro@taller.com\",\r\n  \"password\": \"Password123*\",\r\n  \"role\": \"MECANICO\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET Obtener Usuario por ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code es 200 OK\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Obtiene la información del usuario correcto\", function () {\r\n    var responseData = pm.response.json();\r\n    pm.expect(responseData.data.id).to.eql(pm.environment.get(\"createdUserId\"));\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{createdUserId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{createdUserId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT Actualizar Usuario",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Usuario actualizado correctamente (200 OK)\", function () {\r\n    pm.response.to.have.status(200);\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"Mecanico Pedro Actualizado\",\r\n  \"email\": \"pedro_nuevo@taller.com\",\r\n  \"role\": \"MECANICO\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{createdUserId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{createdUserId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH Cambiar Estado de Usuario",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado de usuario modificado correctamente (200 OK)\", function () {\r\n    pm.response.to.have.status(200);\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{createdUserId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{createdUserId}}",
+                "status"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "03. Clientes",
+      "item": [
+        {
+          "name": "GET Obtener Clientes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code es 200 OK\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Devuelve lista de clientes\", function () {\r\n    var responseData = pm.response.json();\r\n    pm.expect(responseData.status).to.eql(\"success\");\r\n    pm.expect(responseData.data).to.be.an(\"array\");\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/clients",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "clients"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST Crear Cliente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Cliente creado exitosamente (201 Created)\", function () {\r\n    pm.response.to.have.status(201);\r\n});\r\n\r\nvar responseData = pm.response.json();\r\nif (responseData.data && responseData.data.id) {\r\n    // Guardamos el ID del cliente recién creado para usarlo en el resto del CRUD\r\n    pm.environment.set(\"createdClientId\", responseData.data.id);\r\n}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"Juan Perez\",\r\n  \"document_number\": \"1020304050\",\r\n  \"phone\": \"3001234567\",\r\n  \"email\": \"juan.perez@email.com\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/clients",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "clients"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET Buscar Cliente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Búsqueda ejecutada correctamente (200 OK)\", function () {\r\n    pm.response.to.have.status(200);\r\n    var responseData = pm.response.json();\r\n    pm.expect(responseData.data).to.be.an(\"array\");\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/clients/search?query=Juan",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "clients",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "query",
+                  "value": "Juan"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET Obtener Cliente por ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Cliente obtenido exitosamente (200 OK)\", function () {\r\n    pm.response.to.have.status(200);\r\n    var responseData = pm.response.json();\r\n    pm.expect(responseData.data.id).to.eql(pm.environment.get(\"createdClientId\"));\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/clients/{{createdClientId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "clients",
+                "{{createdClientId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT Actualizar Cliente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Cliente actualizado completamente (200 OK)\", function () {\r\n    pm.response.to.have.status(200);\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"Juan Perez Actualizado\",\r\n  \"document_number\": \"1020304050\",\r\n  \"phone\": \"3119876543\",\r\n  \"email\": \"juan.actualizado@email.com\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/clients/{{createdClientId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "clients",
+                "{{createdClientId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH Actualización Parcial Cliente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Cliente actualizado parcialmente (200 OK)\", function () {\r\n    pm.response.to.have.status(200);\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"phone\": \"3000000000\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/clients/{{createdClientId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "clients",
+                "{{createdClientId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "04. Motos",
+      "item": [
+        {
+          "name": "POST Registrar Motocicleta",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Motocicleta creada exitosamente (201 Created)\", function () {\r\n    pm.response.to.have.status(201);\r\n});\r\n\r\nvar responseData = pm.response.json();\r\nif (responseData.data && responseData.data.id) {\r\n    // Guardamos el ID de la moto y su placa para los siguientes tests\r\n    pm.environment.set(\"createdBikeId\", responseData.data.id);\r\n    pm.environment.set(\"createdBikePlaca\", responseData.data.placa);\r\n}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"placa\": \"XYZ987\",\r\n  \"brand\": \"Yamaha\",\r\n  \"model\": \"MT-03\",\r\n  \"cylinder\": \"321cc\",\r\n  \"client_id\": \"{{createdClientId}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/bikes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "bikes"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET Obtener Motocicletas",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code es 200 OK\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Devuelve lista de motocicletas\", function () {\r\n    var responseData = pm.response.json();\r\n    pm.expect(responseData.status).to.eql(\"success\");\r\n    pm.expect(responseData.data).to.be.an(\"array\");\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/bikes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "bikes"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET Buscar Moto por Placa",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Motocicleta encontrada por placa (200 OK)\", function () {\r\n    pm.response.to.have.status(200);\r\n    var responseData = pm.response.json();\r\n    pm.expect(responseData.data.placa).to.eql(pm.environment.get(\"createdBikePlaca\"));\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/bikes/placa/{{createdBikePlaca}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "bikes",
+                "placa",
+                "{{createdBikePlaca}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET Obtener Motos por Cliente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Motos de cliente obtenidas exitosamente (200 OK)\", function () {\r\n    pm.response.to.have.status(200);\r\n    var responseData = pm.response.json();\r\n    pm.expect(responseData.data).to.be.an(\"array\");\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/bikes/client/{{createdClientId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "bikes",
+                "client",
+                "{{createdClientId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET Obtener Moto por ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Motocicleta obtenida por ID (200 OK)\", function () {\r\n    pm.response.to.have.status(200);\r\n    var responseData = pm.response.json();\r\n    pm.expect(responseData.data.id).to.eql(pm.environment.get(\"createdBikeId\"));\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/bikes/{{createdBikeId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "bikes",
+                "{{createdBikeId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
