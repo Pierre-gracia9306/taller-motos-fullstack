@@ -10,6 +10,7 @@ import { AuthRoutes } from './routes/auth.routes.js';
 import { UserRoutes } from './routes/user.routes.js';
 import { ClientRoutes } from './routes/client.routes.js';
 import { BikeRoutes } from './routes/bike.routes.js';
+import { WorkOrderRoutes } from './routes/work_order.routes.js';
 
 const app = express();
 
@@ -39,6 +40,7 @@ apiRouter.use('/auth', AuthRoutes.routes);
 apiRouter.use('/users', UserRoutes.routes);
 apiRouter.use('/clients', ClientRoutes.routes);
 apiRouter.use('/bikes', BikeRoutes.routes);
+apiRouter.use('/work-orders', WorkOrderRoutes.routes);
 
 
 app.use('/api/v1', apiRouter);

@@ -17,6 +17,29 @@ export class BadRequestError extends AppError{
     }
 }
 
+//400 Bad Error: Transición de estado no permitida en el flujo de trabajo
+export class InvalidStateTransitionError extends AppError {
+  constructor(message = "Transición de estado no permitida en el flujo de trabajo.") {
+    super(message, 400);
+  }
+}
+
+// 400 Bad Error: Intento de entregar una orden con ítems pendientes de finalizar
+export class PendingItemsError extends AppError {
+  constructor(message = "No se puede entregar la orden porque existen ítems sin finalizar.") {
+    super(message, 400);
+  }
+}
+
+// 400 Bad Error: Intento de modificar una orden que ya se encuentra finalizada o cancelada
+export class OrderClosedError extends AppError {
+  constructor(message = "La orden se encuentra finalizada o cancelada y no admite cambios.") {
+    super(message, 400);
+  }
+}
+
+
+
 //401 Unauthorized : Credenciales incorrectas o falta de token
 export class UnauthorizedError extends AppError{
     constructor(message='No autorizado. Autenticación requerida'){
