@@ -1,37 +1,39 @@
-import { mockClients } from '../data/mockData.js';
+import api from '../config/axios.js';
 
-const delay = (ms = 300) => new Promise((resolve) => setTimeout(resolve, ms));
+const normalizeResponse = (response) => response?.data?.data ?? response?.data ?? [];
 
 export const clientService = {
   getAll: async () => {
-    await delay();
-    return mockClients;
+    const response = await api.get('/clients');
+    return normalizeResponse(response);
   },
 
   search: async (query = '') => {
-    await delay();
-    const normalized = query.toLowerCase().trim();
+    const q = String(query || '').trim();
 
-    if (!normalized) {
-      return mockClients;
+    if (!q) {
+      return [];
     }
 
-    return mockClients.filter(
-      (client) =>
-        client.name.toLowerCase().includes(normalized) ||
-        client.document_number.includes(normalized) ||
-        client.email.toLowerCase().includes(normalized)
-    );
+    const response = await api.get('/clients/search', {
+      params: { q },
+    });
+
+    return normalizeResponse(response);
   },
 
   create: async (payload) => {
-    await delay();
-    const client = {
-      id: Date.now(),
-      ...payload,
-    };
+    const response = await api.post('/clients', payload);
+    return response?.data?.data ?? response?.data ?? null;
+  },
 
-    mockClients.push(client);
-    return client;
+  getById: async (id) => {
+    const response = await api.get(`/clients/${id}`);
+    return response?.data?.data ?? response?.data ?? null;
+  },
+
+  update: async (id, payload) => {
+    const response = await api.put(`/clients/${id}`, payload);
+    return response?.data?.data ?? response?.data ?? null;
   },
 };

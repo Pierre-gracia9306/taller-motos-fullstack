@@ -57,14 +57,49 @@ export class BikeService {
         return await BikeModel.findById(newBikeId);
     }
 
-    // 4. Listar todas las motos 
+    // 4. Actualizar una moto existente
+    static async updateBike(id, bikeData) {
+        const existingBike = await BikeModel.findById(id);
+        if (!existingBike) {
+            throw new NotFoundError(`No se encontró la motocicleta con ID ${id}`);
+        }
+
+        const { placa, brand, model, cylinder, client_id } = bikeData;
+        const formattedPlaca = placa.trim().toUpperCase();
+
+        const bikeWithSamePlate = await BikeModel.findByPlaca(formattedPlaca);
+        if (bikeWithSamePlate && Number(bikeWithSamePlate.id) !== Number(id)) {
+            throw new ConflictError(`La motocicleta con la placa '${formattedPlaca}' ya está registrada`);
+        }
+
+        const client = await ClientModel.findById(client_id);
+        if (!client) {
+            throw new NotFoundError(`El cliente con ID ${client_id} no existe`);
+        }
+
+        const updated = await BikeModel.update(id, {
+            placa: formattedPlaca,
+            brand: brand.trim(),
+            model: model.trim(),
+            cylinder: cylinder ? cylinder.trim() : null,
+            client_id,
+        });
+
+        if (!updated) {
+            throw new NotFoundError(`No se pudo actualizar la motocicleta con ID ${id}`);
+        }
+
+        return await BikeModel.findById(id);
+    }
+
+    // 5. Listar todas las motos 
     static async findAll() {
         return await BikeModel.findAll();
     }
 
-    // 5. Obtener todas las motos de un cliente específico
+    // 6. Obtener todas las motos de un cliente específico
     static async findByClientId(client_id) {
-        // 5.1 Validar que el cliente exista
+        // 6.1 Validar que el cliente exista
         const client = await ClientModel.findById(client_id);
         if (!client) {
             throw new NotFoundError(`El cliente con ID ${client_id} no existe`);

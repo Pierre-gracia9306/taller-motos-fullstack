@@ -47,7 +47,24 @@ export class BikeController {
         }
     }
 
-    // 4. Listar todas las motos
+    // 4. Actualizar moto (PUT)
+    static async update(req, res, next) {
+        try {
+            const { id } = req.params;
+            const { placa, brand, model, cylinder, client_id } = req.body;
+
+            if (!id || !placa || !brand || !model || !client_id) {
+                throw new BadRequestError("La placa, marca, modelo y propietario son requeridos.");
+            }
+
+            const updatedBike = await BikeService.updateBike(id, { placa, brand, model, cylinder, client_id });
+            return res.success(updatedBike, "Motocicleta actualizada exitosamente.");
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    // 5. Listar todas las motos
     // Ruta sugerida: GET /api/v1/bikes
     static async getAll(_req, res, next) {
         try {
@@ -58,7 +75,7 @@ export class BikeController {
         }
     }
 
-    //5. Obtener todas las motos de un cliente específico
+    //6. Obtener todas las motos de un cliente específico
     // Ruta sugerida: GET /api/v1/bikes/client/:clientId
     static async getBikesByClient(req, res, next) {
         try {

@@ -22,6 +22,12 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+    const isLoginRequest = originalRequest?.url?.includes('/auth/login');
+    const isRefreshRequest = originalRequest?.url?.includes('/auth/refresh-token');
+
+    if (isLoginRequest || isRefreshRequest) {
+      return Promise.reject(error);
+    }
 
     if (error.response?.status === 401 && !originalRequest?._retry) {
       originalRequest._retry = true;
@@ -40,15 +46,12 @@ api.interceptors.response.use(
           originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         }
 
-        // Usamos `api.request(...)` en vez de llamar `api(originalRequest)` para
-        // facilitar el mocking en los tests y evitar que Axios intente una
-        // petición real en el entorno `jsdom`.
         return api.request(originalRequest);
       } catch (refreshError) {
         localStorage.removeItem('accessToken');
         localStorage.removeItem('user');
 
-        window.location.href = '/';
+        window.location.href = '/login';
         return Promise.reject(refreshError);
       }
     }

@@ -6,6 +6,8 @@ const NAV_ITEMS = [
   { label: 'Nuevo ingreso', to: '/work-orders/new', icon: '＋' },
   { label: 'Clientes', to: '/clients', icon: '👥' },
   { label: 'Motos', to: '/bikes', icon: '🏍️' },
+  { label: 'Usuarios', to: '/users', icon: '👤' },
+  { label: 'Perfil', to: '/profile', icon: '⚙️' },
 ];
 
 export default function Sidebar() {

@@ -5,6 +5,7 @@ import Button from '../components/ui/Button';
 import InputField from '../components/ui/InputField';
 import { useAuth } from '../context/AuthContext';
 import { authService } from '../services/auth.service';
+import { getApiErrorMessage } from '../utils/apiError';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -43,11 +44,7 @@ export default function LoginPage() {
       login({ accessToken, user: sessionUser });
       navigate('/dashboard', { replace: true });
     } catch (submitError) {
-      setError(
-        submitError?.response?.data?.message ||
-          submitError?.message ||
-          'No se pudo iniciar sesión. Verifica tus credenciales.'
-      );
+      setError(getApiErrorMessage(submitError, 'No se pudo iniciar sesión. Verifica tus credenciales.'));
     } finally {
       setIsSubmitting(false);
     }
@@ -57,8 +54,8 @@ export default function LoginPage() {
     <div className="min-h-screen bg-slate-950 text-slate-50">
       <div className="mx-auto flex min-h-screen max-w-7xl items-center justify-center px-4 py-10 sm:px-6 lg:px-8">
         <div className="grid w-full overflow-hidden rounded-3xl border border-white/10 bg-slate-900/80 shadow-2xl shadow-cyan-500/10 backdrop-blur-sm lg:grid-cols-2">
-          <div className="relative hidden items-center justify-center overflow-hidden bg-gradient-to-br from-cyan-600 via-sky-700 to-slate-950 p-10 lg:flex">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.2),transparent_40%)]" />
+          <div className="relative hidden items-center justify-center overflow-hidden bg-linear-to-br from-cyan-600 via-sky-700 to-slate-950 p-10 lg:flex">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.2),transparent_40%)]" />
 
             <div className="relative z-10 max-w-md">
               <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-cyan-100">

@@ -57,9 +57,21 @@ export class BikeModel {
             [placa, brand, model, cylinder, client_id]
         );
         return result.insertId; 
-    }   
+    }
 
-    //4. Listar todas las motos con información del propietario
+    //4. Actualizar una moto existente
+    static async update(id, bikeData) {
+        const { placa, brand, model, cylinder, client_id } = bikeData;
+        const [result] = await pool.query(
+            `UPDATE bikes
+             SET placa = ?, brand = ?, model = ?, cylinder = ?, client_id = ?, updated_at = CURRENT_TIMESTAMP
+             WHERE id = ?`,
+            [placa, brand, model, cylinder, client_id, id]
+        );
+        return result.affectedRows > 0;
+    }
+
+    //5. Listar todas las motos con información del propietario
     static async findAll() {
         const [rows] = await pool.query(
             `SELECT
@@ -81,7 +93,7 @@ export class BikeModel {
         return rows; 
     }
 
-    //5. listar motos por ID de cliente
+    //6. listar motos por ID de cliente
     static async findByClientId(clientId) {
         const [rows] = await pool.query(
             `SELECT id, placa, brand, model, cylinder, client_id, created_at, updated_at
@@ -91,5 +103,4 @@ export class BikeModel {
         );
         return rows; 
     }
-}    
-    
+}

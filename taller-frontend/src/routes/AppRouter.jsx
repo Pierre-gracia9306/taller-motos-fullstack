@@ -7,7 +7,10 @@ import CreateOrderPage from '../pages/CreateOrderPage';
 import WorkOrderDetailPage from '../pages/WorkOrderDetailPage';
 import ClientsPage from '../pages/ClientsPage';
 import BikesPage from '../pages/BikesPage';
+import ProfilePage from '../pages/ProfilePage';
 import { useAuth } from '../context/AuthContext';
+import AdminRoute from '../components/AdminRoute';
+import UsersPage from '../pages/UsersPage';
 
 export default function AppRouter() {
   const { isAuthenticated } = useAuth();
@@ -70,6 +73,24 @@ export default function AppRouter() {
           <ProtectedRoute>
             <BikesPage />
           </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <ProfilePage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/users"
+        element={
+          <AdminRoute>
+            <UsersPage />
+          </AdminRoute>
         }
       />
 

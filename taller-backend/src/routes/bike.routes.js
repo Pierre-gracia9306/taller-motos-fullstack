@@ -25,7 +25,8 @@ export class BikeRoutes {
     // Ruta por ID /api/v1/bikes/:id
     router
       .route('/:id')
-      .get(BikeController.findById);
+      .get(BikeController.findById)
+      .put(BikeController.update);
 
     return router;
   }

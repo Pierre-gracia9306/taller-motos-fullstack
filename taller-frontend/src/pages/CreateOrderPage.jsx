@@ -4,6 +4,7 @@ import PageShell from '../components/layout/PageShell';
 import Alert from '../components/ui/Alert';
 import Button from '../components/ui/Button';
 import InputField from '../components/ui/InputField';
+import Modal from '../components/ui/Modal';
 import { useAuth } from '../context/AuthContext';
 import { bikeService } from '../services/bike.service';
 import { clientService } from '../services/client.service';
@@ -29,10 +30,26 @@ export default function CreateOrderPage() {
   const [clientResults, setClientResults] = useState([]);
   const [selectedClient, setSelectedClient] = useState(null);
   const [isSearchingClient, setIsSearchingClient] = useState(false);
+  const [showClientCreator, setShowClientCreator] = useState(false);
+  const [clientDraft, setClientDraft] = useState({
+    name: '',
+    document_number: '',
+    phone: '',
+    email: '',
+  });
+  const [creatingClient, setCreatingClient] = useState(false);
 
   const [bikeSearch, setBikeSearch] = useState('');
   const [existingBike, setExistingBike] = useState(null);
   const [isSearchingBike, setIsSearchingBike] = useState(false);
+  const [showBikeCreator, setShowBikeCreator] = useState(false);
+  const [bikeDraft, setBikeDraft] = useState({
+    placa: '',
+    brand: '',
+    model: '',
+    cylinder: '',
+  });
+  const [creatingBike, setCreatingBike] = useState(false);
 
   const [error, setError] = useState('');
   const [feedback, setFeedback] = useState('');
@@ -122,6 +139,20 @@ export default function CreateOrderPage() {
     setFeedback('');
   };
 
+  const handleClientDraftChange = (event) => {
+    const { name, value } = event.target;
+    setClientDraft((current) => ({ ...current, [name]: value }));
+    setError('');
+    setFeedback('');
+  };
+
+  const handleBikeDraftChange = (event) => {
+    const { name, value } = event.target;
+    setBikeDraft((current) => ({ ...current, [name]: value }));
+    setError('');
+    setFeedback('');
+  };
+
   const applyClient = (client) => {
     setSelectedClient(client);
     setClientSearch(client.name || '');
@@ -134,12 +165,15 @@ export default function CreateOrderPage() {
     }));
     setError('');
     setFeedback(`Cliente encontrado: ${client.name}`);
+    setShowClientCreator(false);
   };
 
   const handleClientManualReset = () => {
     setSelectedClient(null);
     setClientResults([]);
     setClientSearch('');
+    setShowClientCreator(false);
+    setClientDraft({ name: '', document_number: '', phone: '', email: '' });
     setForm((current) => ({
       ...current,
       clientName: '',
@@ -147,6 +181,97 @@ export default function CreateOrderPage() {
       phone: '',
       email: '',
     }));
+  };
+
+  const handleCreateClientFromOrder = async () => {
+    const { name, document_number, phone, email } = clientDraft;
+
+    if (!name || !document_number || !phone || !email) {
+      setError('Completa nombre, documento, teléfono y correo para crear el cliente.');
+      return;
+    }
+
+    setCreatingClient(true);
+    setError('');
+    setFeedback('');
+
+    try {
+      const createdClient = await clientService.create({
+        name: name.trim(),
+        document_number: document_number.trim(),
+        phone: phone.trim(),
+        email: email.trim(),
+      });
+
+      setSelectedClient(createdClient);
+      setClientSearch(createdClient.name || '');
+      setForm((current) => ({
+        ...current,
+        clientName: createdClient.name || current.clientName,
+        documentNumber: createdClient.document_number || current.documentNumber,
+        phone: createdClient.phone || current.phone,
+        email: createdClient.email || current.email,
+      }));
+      setClientDraft({ name: '', document_number: '', phone: '', email: '' });
+      setShowClientCreator(false);
+      setFeedback('Cliente creado correctamente. Ya puedes continuar con la orden.');
+    } catch (submitError) {
+      setError(
+        submitError?.response?.data?.message ||
+          submitError?.message ||
+          'No se pudo crear el cliente.'
+      );
+    } finally {
+      setCreatingClient(false);
+    }
+  };
+
+  const handleCreateBikeFromOrder = async () => {
+    if (!selectedClient) {
+      setError('Primero selecciona o crea un cliente antes de registrar la moto.');
+      return;
+    }
+
+    const { placa, brand, model, cylinder } = bikeDraft;
+
+    if (!placa || !brand || !model) {
+      setError('La placa, marca y modelo son obligatorios para crear la motocicleta.');
+      return;
+    }
+
+    setCreatingBike(true);
+    setError('');
+    setFeedback('');
+
+    try {
+      const createdBike = await bikeService.create({
+        placa: placa.trim().toUpperCase(),
+        brand: brand.trim(),
+        model: model.trim(),
+        cylinder: cylinder?.trim() || null,
+        client_id: selectedClient.id,
+      });
+
+      setExistingBike(createdBike);
+      setForm((current) => ({
+        ...current,
+        placa: createdBike.placa || current.placa,
+        brand: createdBike.brand || current.brand,
+        model: createdBike.model || current.model,
+        cylinder: createdBike.cylinder || current.cylinder,
+      }));
+      setBikeDraft({ placa: '', brand: '', model: '', cylinder: '' });
+      setShowBikeCreator(false);
+      setFeedback('Motocicleta creada correctamente. Ya puedes registrar la orden.');
+    } catch (submitError) {
+      setError(
+        submitError?.response?.data?.message ||
+          submitError?.message ||
+          'No se pudo crear la motocicleta.'
+      );
+    } finally {
+      setCreatingBike(false);
+    }
   };
 
   const handleSubmit = async (event) => {
@@ -177,11 +302,12 @@ export default function CreateOrderPage() {
 
       if (!client) {
         client = await clientService.create({
-          name: form.clientName,
-          document_number: form.documentNumber,
-          phone: form.phone,
-          email: form.email,
+          name: form.clientName.trim(),
+          document_number: form.documentNumber.trim(),
+          phone: form.phone.trim(),
+          email: form.email.trim(),
         });
+        setSelectedClient(client);
       }
 
       let bike = existingBike;
@@ -189,11 +315,12 @@ export default function CreateOrderPage() {
       if (!bike) {
         bike = await bikeService.create({
           placa: form.placa.toUpperCase(),
-          brand: form.brand,
-          model: form.model,
+          brand: form.brand.trim(),
+          model: form.model.trim(),
           cylinder: form.cylinder || null,
           client_id: client.id,
         });
+        setExistingBike(bike);
       }
 
       const order = await workOrderService.create({
@@ -201,14 +328,27 @@ export default function CreateOrderPage() {
         fault_description: form.faultDescription,
       });
 
+      if (!order || !order.id) {
+        throw new Error('La orden no se pudo crear correctamente en el backend.');
+      }
+
       setFeedback('Orden creada correctamente.');
       navigate(`/work-orders/${order.id}`);
     } catch (submitError) {
-      setError(
+      const message =
         submitError?.response?.data?.message ||
-          submitError?.message ||
-          'No se pudo registrar la orden de trabajo.'
-      );
+        submitError?.message ||
+        'No se pudo registrar la orden de trabajo.';
+
+      setError(message);
+
+      if (message.toLowerCase().includes('cliente') || message.toLowerCase().includes('no existe') || message.toLowerCase().includes('no encontrado')) {
+        setShowClientCreator(true);
+      }
+
+      if (message.toLowerCase().includes('moto') || message.toLowerCase().includes('placa')) {
+        setShowBikeCreator(true);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -265,6 +405,20 @@ export default function CreateOrderPage() {
               <p className="text-sm text-slate-400">Buscando clientes disponibles...</p>
             )}
 
+            {!selectedClient && clientSearch.trim().length >= 2 && clientResults.length === 0 && !isSearchingClient && (
+              <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-100">
+                No se encontró un cliente con esos datos. Si no existe, puedes crearlo haciendo clic en{' '}
+                <button
+                  type="button"
+                  onClick={() => setShowClientCreator(true)}
+                  className="font-bold underline underline-offset-4 text-amber-100 hover:text-white"
+                >
+                  Crear cliente
+                </button>
+                .
+              </div>
+            )}
+
             {clientResults.length > 0 && (
               <div className="space-y-2 rounded-xl border border-slate-700 bg-slate-900/60 p-3">
                 {clientResults.map((client) => (
@@ -281,6 +435,20 @@ export default function CreateOrderPage() {
                     <span className="text-xs text-cyan-300">Seleccionar</span>
                   </button>
                 ))}
+              </div>
+            )}
+
+            {!selectedClient && !clientSearch.trim() && (
+              <div className="rounded-xl border border-slate-700 bg-slate-900/40 p-3 text-sm text-slate-300">
+                Si no aparece el cliente, crea uno desde{' '}
+                <button
+                  type="button"
+                  onClick={() => setShowClientCreator(true)}
+                  className="font-bold underline underline-offset-4 text-cyan-300 hover:text-cyan-200"
+                >
+                  Crear cliente
+                </button>
+                .
               </div>
             )}
 
@@ -349,6 +517,34 @@ export default function CreateOrderPage() {
 
             {isSearchingBike && <p className="text-sm text-slate-400">Consultando si la moto ya existe...</p>}
 
+            {!existingBike && form.placa.trim().length >= 3 && !isSearchingBike && (
+              <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-100">
+                No se encontró la motocicleta. Puedes registrar una nueva haciendo clic en{' '}
+                <button
+                  type="button"
+                  onClick={() => setShowBikeCreator(true)}
+                  className="font-bold underline underline-offset-4 text-amber-100 hover:text-white"
+                >
+                  Crear motocicleta
+                </button>
+                .
+              </div>
+            )}
+
+            {!existingBike && !form.placa.trim() && (
+              <div className="rounded-xl border border-slate-700 bg-slate-900/40 p-3 text-sm text-slate-300">
+                Si la moto no aparece, puedes crearla desde{' '}
+                <button
+                  type="button"
+                  onClick={() => setShowBikeCreator(true)}
+                  className="font-bold underline underline-offset-4 text-cyan-300 hover:text-cyan-200"
+                >
+                  Crear motocicleta
+                </button>
+                .
+              </div>
+            )}
+
             {existingBike && (
               <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-100">
                 Se encontró una moto registrada: <strong>{existingBike.brand} {existingBike.model}</strong> con placa <strong>{existingBike.placa}</strong>.
@@ -407,15 +603,113 @@ export default function CreateOrderPage() {
           </section>
 
           <div className="flex justify-end gap-3">
-            <Button type="button" variant="secondary" className="max-w-[180px]" onClick={() => navigate('/work-orders')}>
+            <Button type="button" variant="secondary" className="max-w-45" onClick={() => navigate('/work-orders')}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={isSubmitting} className="max-w-[220px]">
+            <Button type="submit" disabled={isSubmitting} className="max-w-55">
               {isSubmitting ? 'Guardando...' : 'Registrar orden'}
             </Button>
           </div>
         </form>
       </div>
+
+      <Modal isOpen={showClientCreator} onClose={() => setShowClientCreator(false)} title="Crear cliente">
+        <div className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            <InputField
+              id="newClientName"
+              name="name"
+              label="Nombre del cliente"
+              value={clientDraft.name}
+              onChange={handleClientDraftChange}
+              placeholder="Nombre completo"
+            />
+            <InputField
+              id="newClientDocument"
+              name="document_number"
+              label="Documento"
+              value={clientDraft.document_number}
+              onChange={handleClientDraftChange}
+              placeholder="12345678"
+            />
+            <InputField
+              id="newClientPhone"
+              name="phone"
+              label="Teléfono"
+              type="tel"
+              value={clientDraft.phone}
+              onChange={handleClientDraftChange}
+              placeholder="3001234567"
+            />
+            <InputField
+              id="newClientEmail"
+              name="email"
+              label="Correo"
+              type="email"
+              value={clientDraft.email}
+              onChange={handleClientDraftChange}
+              placeholder="correo@ejemplo.com"
+            />
+          </div>
+
+          <div className="mt-4 flex justify-end gap-3">
+            <Button type="button" variant="secondary" onClick={() => setShowClientCreator(false)} className="max-w-45">
+              Cancelar
+            </Button>
+            <Button type="button" onClick={handleCreateClientFromOrder} disabled={creatingClient} className="max-w-55">
+              {creatingClient ? 'Creando cliente...' : 'Crear y usar cliente'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal isOpen={showBikeCreator} onClose={() => setShowBikeCreator(false)} title="Crear motocicleta">
+        <div className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            <InputField
+              id="newBikePlaca"
+              name="placa"
+              label="Placa"
+              value={bikeDraft.placa}
+              onChange={handleBikeDraftChange}
+              placeholder="ABC123"
+            />
+            <InputField
+              id="newBikeBrand"
+              name="brand"
+              label="Marca"
+              value={bikeDraft.brand}
+              onChange={handleBikeDraftChange}
+              placeholder="Yamaha"
+            />
+            <InputField
+              id="newBikeModel"
+              name="model"
+              label="Modelo"
+              value={bikeDraft.model}
+              onChange={handleBikeDraftChange}
+              placeholder="R15"
+            />
+            <InputField
+              id="newBikeCylinder"
+              name="cylinder"
+              label="Cilindraje"
+              value={bikeDraft.cylinder}
+              onChange={handleBikeDraftChange}
+              placeholder="155cc"
+            />
+          </div>
+
+          <div className="mt-4 flex justify-end gap-3">
+            <Button type="button" variant="secondary" onClick={() => setShowBikeCreator(false)} className="max-w-45">
+              Cancelar
+            </Button>
+            <Button type="button" onClick={handleCreateBikeFromOrder} disabled={creatingBike} className="max-w-55">
+              {creatingBike ? 'Registrando moto...' : 'Registrar y usar moto'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </PageShell>
   );
 }

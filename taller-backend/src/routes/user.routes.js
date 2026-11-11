@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { UserController } from '../controllers/user.controller.js';
+import { UserController } from '../controllers/user.Controller.js';
 import { authenticateToken, authorizeRoles } from '../middlewares/auth.middleware.js';
 import { ForbiddenError } from '../utils/errors.js';
 
@@ -25,6 +25,20 @@ export class UserRoutes {
       UserController.changePassword
     );
 
+    router.put(
+      '/:id',
+      (req, _res, next) => {
+        const isOwner = String(req.user.id) === String(req.params.id);
+        const isAdmin = req.user.role === 'ADMIN';
+
+        if (!isOwner && !isAdmin) {
+          return next(new ForbiddenError('No tiene permisos para actualizar este usuario'));
+        }
+        next();
+      },
+      UserController.updateUser
+    );
+
     // A partir de aquí, todas las rutas subsecuentes requieren el rol ADMIN
     router.use(authorizeRoles('ADMIN'));
 
@@ -33,10 +47,7 @@ export class UserRoutes {
       .get(UserController.getAllUsers)
       .post(UserController.registerUser);
 
-    router.route('/:id')
-      .get(UserController.getUserByIdWithoutPassword)
-      .put(UserController.updateUser);
-
+    router.get('/:id', UserController.getUserByIdWithoutPassword);
     router.patch('/:id/status', UserController.toggleUserStatus);
 
     return router;

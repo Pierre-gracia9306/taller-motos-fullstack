@@ -269,7 +269,7 @@ export default function WorkOrderDetailPage() {
                   className="w-full rounded-xl border border-slate-700 bg-slate-950/60 px-4 py-3 text-sm text-white focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/30"
                 >
                   <option value="REPUESTO">Repuesto</option>
-                  <option value="MANO_DE_OBRA">Mano de obra</option>
+                  <option value="MANO_OBRA">Mano de obra</option>
                 </select>
 
                 <InputField

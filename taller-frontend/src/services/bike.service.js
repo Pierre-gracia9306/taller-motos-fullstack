@@ -1,33 +1,36 @@
-import { mockBikes } from '../data/mockData.js';
+import api from '../config/axios.js';
 
-const delay = (ms = 300) => new Promise((resolve) => setTimeout(resolve, ms));
+const normalizeResponse = (response) => response?.data?.data ?? response?.data ?? [];
 
 export const bikeService = {
   getAll: async () => {
-    await delay();
-    return mockBikes;
+    const response = await api.get('/bikes');
+    return normalizeResponse(response);
   },
 
   findByPlate: async (plate) => {
-    await delay();
-    const normalized = String(plate || '').trim().toUpperCase();
+    const normalized = String(plate || '').trim();
 
     if (!normalized) {
       return null;
     }
 
-    return mockBikes.find((bike) => bike.placa.toUpperCase() === normalized) ?? null;
+    const response = await api.get(`/bikes/placa/${encodeURIComponent(normalized)}`);
+    return response?.data?.data ?? response?.data ?? null;
+  },
+
+  getByClient: async (clientId) => {
+    const response = await api.get(`/bikes/client/${encodeURIComponent(clientId)}`);
+    return normalizeResponse(response);
   },
 
   create: async (payload) => {
-    await delay();
-    const bike = {
-      id: Date.now(),
-      ...payload,
-      placa: String(payload.placa || '').toUpperCase(),
-    };
+    const response = await api.post('/bikes', payload);
+    return response?.data?.data ?? response?.data ?? null;
+  },
 
-    mockBikes.push(bike);
-    return bike;
+  update: async (id, payload) => {
+    const response = await api.put(`/bikes/${id}`, payload);
+    return response?.data?.data ?? response?.data ?? null;
   },
 };

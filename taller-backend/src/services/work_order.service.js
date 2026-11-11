@@ -12,6 +12,19 @@ import {
   ForbiddenError
 } from '../utils/errors.js';
 
+const normalizeItemType = (type) => {
+  const normalized = String(type ?? '').trim().toUpperCase();
+
+  const aliases = {
+    MANO_DE_OBRA: 'MANO_OBRA',
+    MANO_OBRA: 'MANO_OBRA',
+    MANOOBRA: 'MANO_OBRA',
+    REPUESTO: 'REPUESTO',
+  };
+
+  return aliases[normalized] || normalized;
+};
+
 // Mapa de transiciones permitidas
 // El estado actual apunta a los estados siguientes válidos.
 const ALLOWED_TRANSITIONS = {
@@ -131,10 +144,15 @@ export class WorkOrderService {
 
   // 6. Agregar item a la orden
   static async addItemToOrder(workOrderId, itemData, user) {
-    const { type, description, count, unit_value } = itemData;
+    const type = normalizeItemType(itemData?.type);
+    const { description, count, unit_value } = itemData;
 
     if (!type || !description || !count || unit_value === undefined) {
       throw new BadRequestError('Todos los campos del ítem son requeridos.');
+    }
+
+    if (!['REPUESTO', 'MANO_OBRA'].includes(type)) {
+      throw new BadRequestError('El tipo de ítem debe ser REPUESTO o MANO_OBRA.');
     }
 
     const order = await WorkOrderModel.findById(workOrderId);
